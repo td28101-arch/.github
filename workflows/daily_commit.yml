@@ -1,0 +1,31 @@
+name: High Frequency Auto Commit
+
+on:
+  schedule:
+    # Chạy vào các phút: 0, 15, 30, 45 của mỗi giờ
+    - cron: '*/15 * * * *'
+  workflow_dispatch: # Nút bấm để bạn chạy thử ngay lập tức
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Update Log
+        run: |
+          echo "Auto-check: $(date)" >> commit_log.txt
+          # Giữ 100 dòng cuối để tránh file quá nặng
+          tail -n 100 commit_log.txt > temp.txt && mv temp.txt commit_log.txt
+
+      - name: Commit and Push
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add commit_log.txt
+          git commit -m "chore: 15-min automated update $(date)"
+          git push
